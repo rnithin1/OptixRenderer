@@ -1,6 +1,6 @@
 #include "creator/createEnvmap.h"
 
-cv::Mat loadEnvmap(Envmap env, unsigned width, unsigned height){
+cv::Mat loadEnvmap(Envmap env, unsigned* width, unsigned* height){
     
     int envWidth, envHeight;
     FILE* hdrRead = fopen(env.fileName.c_str(), "r");
@@ -28,12 +28,14 @@ cv::Mat loadEnvmap(Envmap env, unsigned width, unsigned height){
                 } 
             }
         }
-        cv::Mat envMatNew(height, width, CV_32FC3);
-        cv::resize(envMat, envMatNew, cv::Size(width, height), cv::INTER_AREA); 
+	*height = envHeight;
+	*width = envWidth;
+        //cv::Mat envMatNew(height, width, CV_32FC3);
+        //cv::resize(envMat, envMatNew, cv::Size(width, height), cv::INTER_AREA); 
         
         delete [] hdr;
 
-        return envMatNew;
+        return envMat;
     }
 }
 
@@ -73,6 +75,7 @@ void computeEnvmapDistribution(
 {
     gridWidth = (gridWidth == 0) ? width : gridWidth;
     gridHeight = (gridHeight == 0) ? height : gridHeight;
+    printf("width: %d, height: %d\n", gridWidth, gridHeight);
 
     // Compute the weight map
     float* envWeight = new float[gridWidth * gridHeight];
@@ -176,18 +179,25 @@ void createEnvmap(
     else{
         // Load the environmental map
         Envmap env = envmaps[0];
-        cv::Mat envMat = loadEnvmap(env, width, height);
+	unsigned envwidth, envheight;
+        cv::Mat envMat = loadEnvmap(env, &envwidth, &envheight);
+	if(gridWidth == width || gridHeight == height){
+	    gridWidth = envwidth;
+	    gridHeight = envheight;
+	}
+	    printf("ewidth: %d, eheight: %d\n", envwidth, envheight);
+	    printf("gwidth: %d, gheight: %d\n", gridWidth, gridHeight);
         
         unsigned kernelSize = std::max(5, int(height / 100) );
         if(kernelSize % 2 == 0) kernelSize += 1;
-        cv::Mat envMatBlured(height, width, CV_32FC3);
+        cv::Mat envMatBlured(envheight, envwidth, CV_32FC3);
         cv::GaussianBlur(envMat, envMatBlured, cv::Size(kernelSize, kernelSize), 0, 0); 
 
         context["isEnvmap"] -> setInt(1); 
         createEnvmapBuffer(context, envMat, envMatBlured, gridWidth, gridHeight);
 
         computeEnvmapDistribution(context, envMatBlured, 
-                width, height, gridWidth, gridHeight);
+                envwidth, envheight, gridWidth, gridHeight);
     }
 }
 
@@ -196,7 +206,7 @@ void rotateUpdateEnvmap(Context& context, Envmap& env, float phiDelta,
         unsigned gridWidth, unsigned gridHeight
         )
 {
-    cv::Mat envMat = loadEnvmap(env, width, height);
+    cv::Mat envMat = loadEnvmap(env, &width, &height);
     cv::Mat envMatNew(height, width, CV_32FC3);
     
     // Rotate the envmap  

@@ -15,124 +15,29 @@ rtBuffer<float, 2> envpdf;
 rtDeclareVariable(float, infiniteFar, , );
 
 
-//RT_CALLABLE_PROGRAM float3 EnvUVToDirec(float u, float v){ 
-//    // Turn uv coordinate into direction
-//    float theta = 2 * (u - 0.5) * M_PIf;
-//    float phi = M_PIf * (1 - v); 
-//    return make_float3(
-//                sinf(phi) * sinf(theta),
-//                cosf(phi),
-//                sinf(phi) * cosf(theta)
-//            );
-//}
-
-
-//RT_CALLABLE_PROGRAM float2 EnvDirecToUV(const float3& direc){ 
-//    float theta = atan2f( direc.x, direc.z );
-//    float phi = M_PIf - acosf(direc.y );
-//    float u = theta * (0.5f * M_1_PIf) + 0.5;
-//    if(u > 1)
-//        u = u-1;
-//    float v     = phi / M_PIf;
-//    return make_float2(u, v);
-//}
-
-RT_CALLABLE_PROGRAM float3 EnvUVToDirec(float u, float v, int* index) { 
+RT_CALLABLE_PROGRAM float3 EnvUVToDirec(float u, float v){ 
     // Turn uv coordinate into direction
-    // convert range 0 to 1 to -1 to 1
-    float uc = 2.0f * u - 1.0f;
-    float vc = 2.0f * v - 1.0f;
-    float x, y, z;
-    switch (index) {
-      case 0: x =  1.0f; y =    vc; z =   -uc; break;	// POSITIVE X
-      case 1: x = -1.0f; y =    vc; z =    uc; break;	// NEGATIVE X
-      case 2: x =    uc; y =  1.0f; z =   -vc; break;	// POSITIVE Y
-      case 3: x =    uc; y = -1.0f; z =    vc; break;	// NEGATIVE Y
-      case 4: x =    uc; y =    vc; z =  1.0f; break;	// POSITIVE Z
-      case 5: x =   -uc; y =    vc; z = -1.0f; break;	// NEGATIVE Z
-    }
-    return normalize(make_float3(x, y, z));
-
+    float theta = 2 * (u - 0.5) * M_PIf;
+    float phi = M_PIf * (1 - v); 
+    return make_float3(
+                sinf(phi) * sinf(theta),
+                cosf(phi),
+                sinf(phi) * cosf(theta)
+            );
 }
 
-RT_CALLABLE_PROGRAM float2 EnvDirecToUV(const float3& direc, int* index) { 
-    float x = direc.x;
-    float y = direc.y;
-    float z = direc.z;
-    
-    float absX = fabs(x);
-    float absY = fabs(y);
-    float absZ = fabs(z);
-  
-    int isXPositive = x > 0 ? 1 : 0;
-    int isYPositive = y > 0 ? 1 : 0;
-    int isZPositive = z > 0 ? 1 : 0;
-  
-    float maxAxis, uc, vc;
-  
-    // POSITIVE X
-    if (isXPositive && absX >= absY && absX >= absZ) {
-      // u (0 to 1) goes from +z to -z
-      // v (0 to 1) goes from -y to +y
-      maxAxis = absX;
-      uc = -z;
-      vc = y;
-      *index = 0;
-    }
-    // NEGATIVE X
-    if (!isXPositive && absX >= absY && absX >= absZ) {
-      // u (0 to 1) goes from -z to +z
-      // v (0 to 1) goes from -y to +y
-      maxAxis = absX;
-      uc = z;
-      vc = y;
-      *index = 1;
-    }
-    // POSITIVE Y
-    if (isYPositive && absY >= absX && absY >= absZ) {
-      // u (0 to 1) goes from -x to +x
-      // v (0 to 1) goes from +z to -z
-      maxAxis = absY;
-      uc = x;
-      vc = -z;
-      *index = 2;
-    }
-    // NEGATIVE Y
-    if (!isYPositive && absY >= absX && absY >= absZ) {
-      // u (0 to 1) goes from -x to +x
-      // v (0 to 1) goes from -z to +z
-      maxAxis = absY;
-      uc = x;
-      vc = z;
-      *index = 3;
-    }
-    // POSITIVE Z
-    if (isZPositive && absZ >= absX && absZ >= absY) {
-      // u (0 to 1) goes from -x to +x
-      // v (0 to 1) goes from -y to +y
-      maxAxis = absZ;
-      uc = x;
-      vc = y;
-      *index = 4;
-    }
-    // NEGATIVE Z
-    if (!isZPositive && absZ >= absX && absZ >= absY) {
-      // u (0 to 1) goes from +x to -x
-      // v (0 to 1) goes from -y to +y
-      maxAxis = absZ;
-      uc = -x;
-      vc = y;
-      *index = 5;
-    }
-  
-    // Convert range from -1 to 1 to 0 to 1
-    u = 0.5f * (uc / maxAxis + 1.0f);
-    v = 0.5f * (vc / maxAxis + 1.0f);
+
+RT_CALLABLE_PROGRAM float2 EnvDirecToUV(const float3& direc){ 
+    float theta = atan2f( direc.x, direc.z );
+    float phi = M_PIf - acosf(direc.y );
+    float u = theta * (0.5f * M_1_PIf) + 0.5;
+    if(u > 1)
+        u = u-1;
+    float v     = phi / M_PIf;
     return make_float2(u, v);
 }
 
-
-RT_CALLABLE_PROGRAM float EnvDirecToPdf(const float3& direc){
+RT_CALLABLE_PROGRAM float EnvDirecToPdf(const float3& direc) {
     float2 uv = EnvDirecToUV(direc);
     size_t2 pdfSize = envpdf.size();
     float u = uv.x, v = uv.y;
@@ -140,6 +45,110 @@ RT_CALLABLE_PROGRAM float EnvDirecToPdf(const float3& direc){
     int colId = int(u * (pdfSize.x - 1) );
     return envpdf[make_uint2(colId, rowId ) ];
 }
+
+//RT_CALLABLE_PROGRAM float3 EnvUVToDirec(float u, float v, int* index) { 
+//    // Turn uv coordinate into direction
+//    // convert range 0 to 1 to -1 to 1
+//    float uc = 2.0f * u - 1.0f;
+//    float vc = 2.0f * v - 1.0f;
+//    float x, y, z;
+//    switch (index) {
+//      case 0: x =  1.0f; y =    vc; z =   -uc; break;	// POSITIVE X
+//      case 1: x = -1.0f; y =    vc; z =    uc; break;	// NEGATIVE X
+//      case 2: x =    uc; y =  1.0f; z =   -vc; break;	// POSITIVE Y
+//      case 3: x =    uc; y = -1.0f; z =    vc; break;	// NEGATIVE Y
+//      case 4: x =    uc; y =    vc; z =  1.0f; break;	// POSITIVE Z
+//      case 5: x =   -uc; y =    vc; z = -1.0f; break;	// NEGATIVE Z
+//    }
+//    return normalize(make_float3(x, y, z));
+//
+//}
+//
+//RT_CALLABLE_PROGRAM float2 EnvDirecToUV(const float3& direc, int* index) { 
+//    float x = direc.x;
+//    float y = direc.y;
+//    float z = direc.z;
+//    
+//    float absX = fabs(x);
+//    float absY = fabs(y);
+//    float absZ = fabs(z);
+//  
+//    int isXPositive = x > 0 ? 1 : 0;
+//    int isYPositive = y > 0 ? 1 : 0;
+//    int isZPositive = z > 0 ? 1 : 0;
+//  
+//    float maxAxis, uc, vc;
+//  
+//    // POSITIVE X
+//    if (isXPositive && absX >= absY && absX >= absZ) {
+//      // u (0 to 1) goes from +z to -z
+//      // v (0 to 1) goes from -y to +y
+//      maxAxis = absX;
+//      uc = -z;
+//      vc = y;
+//      *index = 0;
+//    }
+//    // NEGATIVE X
+//    if (!isXPositive && absX >= absY && absX >= absZ) {
+//      // u (0 to 1) goes from -z to +z
+//      // v (0 to 1) goes from -y to +y
+//      maxAxis = absX;
+//      uc = z;
+//      vc = y;
+//      *index = 1;
+//    }
+//    // POSITIVE Y
+//    if (isYPositive && absY >= absX && absY >= absZ) {
+//      // u (0 to 1) goes from -x to +x
+//      // v (0 to 1) goes from +z to -z
+//      maxAxis = absY;
+//      uc = x;
+//      vc = -z;
+//      *index = 2;
+//    }
+//    // NEGATIVE Y
+//    if (!isYPositive && absY >= absX && absY >= absZ) {
+//      // u (0 to 1) goes from -x to +x
+//      // v (0 to 1) goes from -z to +z
+//      maxAxis = absY;
+//      uc = x;
+//      vc = z;
+//      *index = 3;
+//    }
+//    // POSITIVE Z
+//    if (isZPositive && absZ >= absX && absZ >= absY) {
+//      // u (0 to 1) goes from -x to +x
+//      // v (0 to 1) goes from -y to +y
+//      maxAxis = absZ;
+//      uc = x;
+//      vc = y;
+//      *index = 4;
+//    }
+//    // NEGATIVE Z
+//    if (!isZPositive && absZ >= absX && absZ >= absY) {
+//      // u (0 to 1) goes from +x to -x
+//      // v (0 to 1) goes from -y to +y
+//      maxAxis = absZ;
+//      uc = -x;
+//      vc = y;
+//      *index = 5;
+//    }
+//  
+//    // Convert range from -1 to 1 to 0 to 1
+//    u = 0.5f * (uc / maxAxis + 1.0f);
+//    v = 0.5f * (vc / maxAxis + 1.0f);
+//    return make_float2(u, v);
+//}
+//
+//
+//RT_CALLABLE_PROGRAM float EnvDirecToPdf(const float3& direc) {
+//    float2 uv = EnvDirecToUV(direc);
+//    size_t2 pdfSize = envpdf.size();
+//    float u = uv.x, v = uv.y;
+//    int rowId = int(v * (pdfSize.y - 1) );
+//    int colId = int(u * (pdfSize.x - 1) );
+//    return envpdf[make_uint2(colId, rowId ) ];
+//}
 
 
 RT_CALLABLE_PROGRAM void sampleEnvironmapLight(unsigned int& seed, float3& radiance, float3& direction, float& pdfSolidEnv){

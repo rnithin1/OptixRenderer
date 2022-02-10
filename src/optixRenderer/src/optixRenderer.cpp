@@ -74,6 +74,9 @@
 
 using namespace optix;
 
+int width;
+int height;
+
 long unsigned vertexCount(const std::vector<shape_t>& shapes)
 {
     long unsigned vertexSum = 0;

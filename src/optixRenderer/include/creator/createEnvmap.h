@@ -16,7 +16,7 @@
 using namespace optix;
 
 
-cv::Mat loadEnvmap(Envmap env, unsigned width = 1024, unsigned height = 512);
+cv::Mat loadEnvmap(Envmap env, unsigned* width, unsigned* height);
 
 void createEnvmapBuffer(Context& context, 
         cv::Mat& envMat, cv::Mat& envMatBlured, 
