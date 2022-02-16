@@ -51,7 +51,6 @@
 #include <cmath>
 #include <map>
 
-
 #include "inout/readXML.h"
 #include "structs/cameraInput.h"
 #include "lightStructs.h"
@@ -73,9 +72,6 @@
 #include "stdio.h"
 
 using namespace optix;
-
-int width;
-int height;
 
 long unsigned vertexCount(const std::vector<shape_t>& shapes)
 {
@@ -430,6 +426,9 @@ int main( int argc, char** argv )
     CameraInput cameraInput;
     std::vector<Envmap> envmaps;
     std::vector<Point> points;
+
+    //curandState_t state;
+    //curand_init(time(0), 0, 0, &state);
 
     char fileNameNew[PATH_MAX+1 ];
     char* isRealPath = realpath(fileName.c_str(), fileNameNew );

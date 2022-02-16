@@ -16,15 +16,15 @@
 using namespace optix;
 
 
-cv::Mat loadEnvmap(Envmap env, unsigned* width, unsigned* height);
+std::array<cv::Mat, 6> loadEnvmap(Envmap env, unsigned* width, unsigned* height);
 
 void createEnvmapBuffer(Context& context, 
-        cv::Mat& envMat, cv::Mat& envMatBlured, 
+        std::array<cv::Mat, 6>& envMat, std::array<cv::Mat, 6>& envMatBlured, 
         unsigned gridWidth = 0, unsigned gridHeight = 0);
 
 void computeEnvmapDistribution(
             Context& context,
-            cv::Mat envMat,
+            std::array<cv::Mat, 6> envMat,
             unsigned width = 1024, unsigned height = 512, 
             unsigned gridWidth = 0, unsigned gridHeight = 0);
 
