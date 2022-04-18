@@ -31,11 +31,11 @@ std::array<cv::Mat, 6> loadEnvmap(Envmap env, unsigned* width, unsigned* height)
 	int face_dim = envHeight / 3;
 	std::array<cv::Mat, 6> envMatFaces;
 
-        envMatFaces[0] = envMat(cv::Rect(0*face_dim, 1*face_dim, face_dim, face_dim));
-        envMatFaces[1] = envMat(cv::Rect(1*face_dim, 0*face_dim, face_dim, face_dim));
-        envMatFaces[2] = envMat(cv::Rect(1*face_dim, 1*face_dim, face_dim, face_dim));
+        envMatFaces[1] = envMat(cv::Rect(0*face_dim, 1*face_dim, face_dim, face_dim));
+        envMatFaces[2] = envMat(cv::Rect(1*face_dim, 0*face_dim, face_dim, face_dim));
+        envMatFaces[4] = envMat(cv::Rect(1*face_dim, 1*face_dim, face_dim, face_dim));
         envMatFaces[3] = envMat(cv::Rect(1*face_dim, 2*face_dim, face_dim, face_dim));
-        envMatFaces[4] = envMat(cv::Rect(2*face_dim, 1*face_dim, face_dim, face_dim));
+        envMatFaces[0] = envMat(cv::Rect(2*face_dim, 1*face_dim, face_dim, face_dim));
         envMatFaces[5] = envMat(cv::Rect(3*face_dim, 1*face_dim, face_dim, face_dim));
 
 
