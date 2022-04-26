@@ -242,8 +242,9 @@ RT_PROGRAM void closest_hit_radiance()
                         float pdfSolidBRDF = pdf(L, V, N);
                         float pdfSolidBRDF2 = pdfSolidBRDF * pdfSolidBRDF;
                         float pdfSolidEnv2 = pdfSolidEnv * pdfSolidEnv;
-                        prd_radiance.radiance += intensity * pdfSolidEnv /
-                            fmaxf( (pdfSolidEnv2 + pdfSolidBRDF2), 1e-14) * prd_radiance.attenuation; 
+			//prd_radiance.radiance += intensity * pdfSolidEnv /
+                        //    fmaxf( (pdfSolidEnv2 + pdfSolidBRDF2), 1e-14) * prd_radiance.attenuation; 
+			prd_radiance.radiance = make_float3(texcoord.x * uvScale, texcoord.y * uvScale, 0.);
                     }
                 }
             }

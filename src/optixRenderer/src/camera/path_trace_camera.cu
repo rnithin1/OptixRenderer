@@ -8,8 +8,7 @@
  *    notice, this list of conditions and the following disclaimer.
  *  * Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *  * Neither the name of NVIDIA CORPORATION nor the names of its
+ *    documentation and/or other materials provided with the distribution.  *  * Neither the name of NVIDIA CORPORATION nor the names of its
  *    contributors may be used to endorse or promote products derived
  *    from this software without specific prior written permission.
  *
@@ -65,7 +64,7 @@ RT_PROGRAM void pinhole_camera()
         ( (initSeed)*(screen.x*launch_index.y+launch_index.x) + initSeed ), 
         ( (screen.y * launch_index.x + launch_index.y) * initSeed ) );
     
-    do{
+//    do{
         // Sample pixel using jittering
         float3 ray_origin = eye;
         unsigned int x = samples_per_pixel%sqrt_num_samples;
@@ -114,8 +113,8 @@ RT_PROGRAM void pinhole_camera()
 
         // Each iteration is a segment of the ray path.  The closest hit will
         // return new segments to be traced here.
-        for(;;)
-        {
+  //      for(;;)
+  //      {
             Ray ray(ray_origin, ray_direction, 0, scene_epsilon);
             rtTrace(top_object, ray, prd);
  
@@ -129,11 +128,11 @@ RT_PROGRAM void pinhole_camera()
                 else{
                     prd.done = true;
                 }
-            }
+ //           }
 
             // Hit the light source or exceed the max depth
-            if(prd.done || prd.depth >= max_depth) 
-                break; 
+ //           if(prd.done || prd.depth >= max_depth) 
+ //               break; 
             
             // Update ray data for the next path segment
             ray_origin = prd.origin;
@@ -141,7 +140,7 @@ RT_PROGRAM void pinhole_camera()
         }
         radiance += prd.radiance;
         seed = prd.seed;
-    } while (--samples_per_pixel);
+//    } while (--samples_per_pixel);
 
     // Update the output buffer
     float3 pixel_color = radiance / (sqrt_num_samples*sqrt_num_samples);
