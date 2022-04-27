@@ -64,86 +64,61 @@ RT_PROGRAM void pinhole_camera()
         ( (initSeed)*(screen.x*launch_index.y+launch_index.x) + initSeed ), 
         ( (screen.y * launch_index.x + launch_index.y) * initSeed ) );
     
-//    do{
-        // Sample pixel using jittering
-        float3 ray_origin = eye;
-        unsigned int x = samples_per_pixel%sqrt_num_samples;
-        unsigned int y = samples_per_pixel/sqrt_num_samples;
-        float2 jitter = make_float2(x-rnd(seed), y-rnd(seed) );
-        float2 d = pixel + jitter*jitter_scale;
 
-        
-        float3 ray_direction;
-        if(cameraMode == 0){
-            ray_direction = normalize(d.x*cameraU + d.y*cameraV + cameraW);
+    // Sample pixel using jittering
+    float3 ray_origin = eye;
+    unsigned int x = samples_per_pixel%sqrt_num_samples;
+    unsigned int y = samples_per_pixel/sqrt_num_samples;
+    float2 jitter = make_float2(x-rnd(seed), y-rnd(seed) );
+    float2 d = pixel + jitter*jitter_scale;
+
+    
+    float3 ray_direction;
+    if(cameraMode == 0){
+        ray_direction = normalize(d.x*cameraU + d.y*cameraV + cameraW);
+    }
+    else{
+        float3 axisZ = normalize(cameraW );
+        float3 axisX = normalize(cameraU );
+        float3 axisY = normalize(cameraV );
+
+        d.x = (d.x > 1.0f) ? 1.0f : d.x;
+        d.y = (d.y > 1.0f) ? 1.0f : d.y;
+        d.x = (d.x < -1.0f) ? -1.0f : d.x;
+        d.y = (d.y < -1.0f) ? -1.0f : d.y;
+
+        float phi = d.x * M_PIf;
+        float theta;
+        if(cameraMode == 1){
+            theta = 0.5f * (-d.y + 1.0f) * M_PIf;
         }
-        else{
-            float3 axisZ = normalize(cameraW );
-            float3 axisX = normalize(cameraU );
-            float3 axisY = normalize(cameraV );
-
-            d.x = (d.x > 1.0f) ? 1.0f : d.x;
-            d.y = (d.y > 1.0f) ? 1.0f : d.y;
-            d.x = (d.x < -1.0f) ? -1.0f : d.x;
-            d.y = (d.y < -1.0f) ? -1.0f : d.y;
-
-            float phi = d.x * M_PIf;
-            float theta;
-            if(cameraMode == 1){
-                theta = 0.5f * (-d.y + 1.0f) * M_PIf;
-            }
-            else if(cameraMode == 2){
-                theta = 0.25f * (-d.y + 1.0f) * M_PIf;
-            }
-            ray_direction = normalize(
-                    sinf(theta) * cosf(phi) * axisX 
-                    + sinf(theta) * sinf(phi) * axisY 
-                    + cosf(theta) * axisZ
-                    );
+        else if(cameraMode == 2){
+            theta = 0.25f * (-d.y + 1.0f) * M_PIf;
         }
+        ray_direction = normalize(
+                sinf(theta) * cosf(phi) * axisX 
+                + sinf(theta) * sinf(phi) * axisY 
+                + cosf(theta) * axisZ
+                );
+    }
 
-        // Initialze per-ray data
-        PerRayData_radiance prd;
-        prd.attenuation = make_float3(1.f);
-        prd.radiance = make_float3(0.f);
-        prd.done = false;
-        prd.seed = seed;
-        prd.depth = 0;
-        prd.direction = ray_direction;
+    // Initialze per-ray data
+    PerRayData_radiance prd;
+    prd.attenuation = make_float3(1.f);
+    prd.radiance = make_float3(0.f);
+    prd.done = false;
+    prd.seed = seed;
+    prd.depth = 0;
+    prd.direction = ray_direction;
 
-        // Each iteration is a segment of the ray path.  The closest hit will
-        // return new segments to be traced here.
-  //      for(;;)
-  //      {
-            Ray ray(ray_origin, ray_direction, 0, scene_epsilon);
-            rtTrace(top_object, ray, prd);
- 
-            prd.depth++; 
-           
-            if(prd.depth > rr_begin_depth){
-                float z = rnd(prd.seed);
-                if(z < length(prd.attenuation) ){
-                    prd.attenuation = prd.attenuation / fmaxf(length(prd.attenuation), 1e-10);
-                }
-                else{
-                    prd.done = true;
-                }
- //           }
+    // Each iteration is a segment of the ray path.  The closest hit will
+    // return new segments to be traced here.
 
-            // Hit the light source or exceed the max depth
- //           if(prd.done || prd.depth >= max_depth) 
- //               break; 
-            
-            // Update ray data for the next path segment
-            ray_origin = prd.origin;
-            ray_direction = prd.direction;
-        }
-        radiance += prd.radiance;
-        seed = prd.seed;
-//    } while (--samples_per_pixel);
+    Ray ray(ray_origin, ray_direction, 0, scene_epsilon);
+    rtTrace(top_object, ray, prd);
 
     // Update the output buffer
-    float3 pixel_color = radiance / (sqrt_num_samples*sqrt_num_samples);
+    float3 pixel_color = prd.radiance;
     output_buffer[launch_index] = pixel_color;
 }
 
