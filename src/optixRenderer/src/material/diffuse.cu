@@ -120,8 +120,8 @@ RT_CALLABLE_PROGRAM void sample(unsigned& seed,
 
 RT_PROGRAM void closest_hit_radiance()
 {
-    prd_radiance.x = texcoord.x * uvScale;
-    prd_radiance.y = texcoord.y * uvScale;
+    prd_radiance.radiance.x = texcoord.x * uvScale;
+    prd_radiance.radiance.y = texcoord.y * uvScale;
     return;
     
     const float3 world_shading_normal   = normalize( rtTransformNormal( RT_OBJECT_TO_WORLD, shading_normal ) );

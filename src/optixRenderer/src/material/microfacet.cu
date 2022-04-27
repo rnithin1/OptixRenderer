@@ -218,8 +218,8 @@ RT_PROGRAM void closest_hit_radiance()
         albedoValue.z = pow(albedoValue.z, 2.2);
     }
 
-    prd_radiance.x = texcoord.x * uvScale;
-    prd_radiance.y = texcoord.y * uvScale;
+    prd_radiance.radiance.x = texcoord.x * uvScale;
+    prd_radiance.radiance.y = texcoord.y * uvScale;
     return;
     float roughValue = (isRoughTexture == 0) ? rough :
         tex2D(roughMap, texcoord.x * uvScale, texcoord.y * uvScale).x;
