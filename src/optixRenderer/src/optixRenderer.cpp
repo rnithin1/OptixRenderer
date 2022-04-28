@@ -71,6 +71,9 @@
 #include "postprocessing/filter.h"
 #include "stdio.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 using namespace optix;
 
 long unsigned vertexCount(const std::vector<shape_t>& shapes)
@@ -125,6 +128,8 @@ float clip(float a, float min, float max){
 
 bool writeBufferToFile(const char* fileName, float* imgData, int width, int height, bool isHdr = false, int mode = 0)
 {   
+    stbi_write_hdr(finalImagePath, height, width, 3, imgData);
+    return;
     if(mode == 1 || mode == 2 || mode == 3 || mode == 4 || mode  == 6)
         isHdr = false;
     
@@ -206,29 +211,29 @@ std::string generateOutputFilename(std::string fileName, int mode, bool isHdr, i
         suffix = fileName.substr(pos+1, fileName.length() );
     }
     
-    if(mode == 0){
-        if(isHdr){
-            if(suffix != std::string("rgbe") ){
-                std::cout<<"Warning: we only support rgbe image for hdr"<<std::endl;
-            }
-            suffix = std::string("rgbe");
-        }
-        else{
-            if(suffix != std::string("bmp") && suffix != std::string("png") 
-                    && suffix != std::string("jpg") && suffix != std::string("jpeg") )
-            {
-                std::cout<<"Warning: only support jpg, bmp, png file format"<<std::endl;
-                suffix = std::string("png");
-            }
-        }
-    }
-    else if(mode == 1 || mode == 2 || mode == 3 || mode == 4 || mode == 6){
-        suffix = std::string("png");
-    }
-    else if(mode == 5){
-        suffix = std::string("dat");
-    }
-
+    // if(mode == 0){
+    //     if(isHdr){
+    //         if(suffix != std::string("rgbe") ){
+    //             std::cout<<"Warning: we only support rgbe image for hdr"<<std::endl;
+    //         }
+    //         suffix = std::string("rgbe");
+    //     }
+    //     else{
+    //         if(suffix != std::string("bmp") && suffix != std::string("png") 
+    //                 && suffix != std::string("jpg") && suffix != std::string("jpeg") )
+    //         {
+    //             std::cout<<"Warning: only support jpg, bmp, png file format"<<std::endl;
+    //             suffix = std::string("png");
+    //         }
+    //     }
+    // }
+    // else if(mode == 1 || mode == 2 || mode == 3 || mode == 4 || mode == 6){
+    //     suffix = std::string("png");
+    // }
+    // else if(mode == 5){
+    //     suffix = std::string("dat");
+    // }
+    suffix = std::string("hdr");
     std::string outputFileName;
     std::string modeString = "";
     switch(mode){
