@@ -128,8 +128,8 @@ float clip(float a, float min, float max){
 
 bool writeBufferToFile(const char* fileName, float* imgData, int width, int height, bool isHdr = false, int mode = 0)
 {   
-    stbi_write_hdr(finalImagePath, height, width, 3, imgData);
-    return;
+    stbi_write_hdr(fileName, height, width, 3, imgData);
+    return true;
     if(mode == 1 || mode == 2 || mode == 3 || mode == 4 || mode  == 6)
         isHdr = false;
     
